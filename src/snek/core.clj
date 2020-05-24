@@ -50,6 +50,7 @@
     (remove (partial = direction) [:north :south, :west, :east]))))
 
 (defn snake-turn[snake]
+  (Thread/sleep 100)
   (update snake :direction random-direction))
 
 (defn board-move

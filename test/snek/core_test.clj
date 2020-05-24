@@ -18,3 +18,12 @@
   (testing "move a stopped snake"
     (is
      (= (:position (snake-move (snake-new [5 5] :stopped))) [5 5]))))
+
+(deftest snake-crashed
+  (let [board [[0 0 0]
+               [0 0 0]
+               [0 0 0]]]
+    (testing "outside board"
+      (is
+       (true? (crashed? board (snake-new [-1 -1] :stopped)))))))
+

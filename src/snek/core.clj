@@ -3,9 +3,9 @@
 (def board-height 5)
 (def board-width 5)
 
-(def space \.)
+(def space 0)
 (def wall  \#)
-(def munchy  \o)
+(def munchy  \X)
 (def head  \+)
 (def tail  \+)
 
@@ -44,20 +44,38 @@
                              (map #(apply str %1) tiles))]
     (println picture)))
 
+(defn board-move
+  "Snakes head becomes first part of the tail"
+  [board snake-head]
+  (mapv (fn [row] (mapv #(if (and (int? %) (pos? %)) (dec %) %) row))
+          (update-in board snake-head (constantly 3)
+                     )))
+
+(defn crashed?[board {:keys [position]}]
+  (let [cell (get-in board position)]
+    (or (nil? cell)
+        (pos? cell))))
+
+(let [board [[0 0 0]
+             [0 0 0]
+             [0 0 0]]]
+  (crashed? board (snake-new [-1 -1] :stopped)))
+
 (defn start-game[]
-  (loop [turns 5
+  (loop [turns 3
          {:keys [board snake food] :as game} game-new]
-    (if (zero? turns)
-      (println "Game Over")
-      (do
-        (paint game)
-        (println "next...")
-        (recur (dec turns)
-               {
-                :snake (snake-move snake)
-                :food food
-                :board board
-                })))))
+    (cond
+      (zero? turns) (println "Out of turns")
+      (crashed? board snake) (println "Crashed - Game Over")
+      :else (do
+              (paint game)
+              (println "------------------ next...")
+              (recur (dec turns)
+                     {
+                      :snake (snake-move snake)
+                      :food food
+                      :board (board-move board (:position snake))
+                      })))))
 
 (defn -main []
   (start-game))

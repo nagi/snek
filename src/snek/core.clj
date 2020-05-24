@@ -83,8 +83,10 @@
     (update snake :length inc)
     snake))
 
-(defn replace-food[board]
-  [8 8])
+(defn replace-food[{:keys [position] :as snake} food]
+  (if (= position food)
+    [(int (rand board-height)) (int (rand board-width))]
+    food))
 
 (defn start-game[]
   (loop [turns 30
@@ -99,7 +101,7 @@
               (recur (dec turns)
                      {
                       :snake (snake-move-position (snake-turn (eat-and-grow snake food)))
-                      :food (replace-food board)
+                      :food (replace-food snake food)
                       :board (board-move board snake)
                       })))))
 

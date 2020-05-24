@@ -4,7 +4,7 @@
 (def board-width 16)
 
 (def space 0)
-(def munchy  \X)
+(def apple  \X)
 (def head  \+)
 
 (defn board-new[height width]
@@ -32,11 +32,13 @@
    :food [10,10]})
 
 (defn paint[{:keys [board snake food], {:keys [position direction]} :snake}]
+  (print (str (char 27) "[2J")) ; clear screen
+  (print (str (char 27) "[;H")) ; move cursor to top left
   (let [tiles (for [row (range board-height)]
                 (for [cell (range board-width)]
                   (cond
                     (= [row cell] position) head
-                    (= [row cell] food) munchy
+                    (= [row cell] food) apple
                     :else ((board row) cell))))
         picture (clojure.string/join "\n"
                              (map #(apply str %1) tiles))]
@@ -75,33 +77,49 @@
 
 (defn crashed?[board {:keys [position]}]
   (let [cell (get-in board position)]
-    (or (nil? cell)
-        (pos? cell))))
+    (or (nil? cell) ;; Out of board
+        (pos? cell)))) ;; Crashed into tail
 
-(defn eat-and-grow[{:keys [position] :as snake} food]
+(defn eat-and-grow[food {:keys [position] :as snake}]
   (if (= position food)
     (update snake :length inc)
     snake))
 
-(defn replace-food[{:keys [position] :as snake} food]
+(defn all-positions[board]
+  (for [y (range (count board))
+        x (range (count (first board)))]
+    [y x]))
+
+(defn all-blanks[board]
+  (filter
+   (fn [coords]
+     ((every-pred int? zero?)
+      (get-in board coords)))
+   (all-positions board)))
+
+(defn empty-position[board]
+  ((comp first shuffle) (all-blanks board)))
+
+(defn replace-food[{:keys [position] :as snake} food board]
   (if (= position food)
-    [(int (rand board-height)) (int (rand board-width))]
+    (empty-position board)
     food))
 
 (defn start-game[]
-  (loop [turns 30
+  (loop [turns 99999
          {:keys [board snake food] :as game} game-new]
     (cond
       (zero? turns) (println "Out of turns")
       (crashed? board snake) (println "Crashed - Game Over")
       :else (do
-              (print (str (char 27) "[2J")) ; clear screen
-              (print (str (char 27) "[;H")) ; move cursor to top left
               (paint game)
               (recur (dec turns)
                      {
-                      :snake (snake-move-position (snake-turn (eat-and-grow snake food)))
-                      :food (replace-food snake food)
+                      :snake (->> snake
+                                  (eat-and-grow food)
+                                  snake-turn
+                                  snake-move-position)
+                      :food (replace-food snake food board)
                       :board (board-move board snake)
                       })))))
 

@@ -1,14 +1,15 @@
-(ns snek.core)
+(ns snek.core
+  (:require
+   [snek.graphics :refer [paint]]
+   [snek.controls :refer [direct-snake]]
+   ))
 
 (def board-height 16)
 (def board-width 16)
-
-(def space 0)
-(def apple  \X)
-(def head  \+)
+(def blank-cell 0)
 
 (defn board-new[height width]
-  (->> space
+  (->> blank-cell
        (repeat width)
        vec
        (repeat height)
@@ -18,12 +19,13 @@
   {:position [y x] :direction direction :length length})
 
 (defn snake-move-position [{:keys [position direction length] :as snake}]
-  (let [[y x] position]
+  (let [[y x] position
+        move-position (fn [new-position] (assoc snake :position new-position))]
     (condp = direction
-      :north (snake-new [(dec y) x] direction length)
-      :south (snake-new [(inc y) x] direction length)
-      :west  (snake-new [y (dec x)] direction length)
-      :east  (snake-new [y (inc x)] direction length)
+      :north (move-position [(dec y) x])
+      :south (move-position [(inc y) x])
+      :west  (move-position [y (dec x)])
+      :east  (move-position [y (inc x)])
       :stopped snake)))
 
 (def game-new
@@ -31,43 +33,10 @@
    :snake (snake-new [5 5] :east 3)
    :food [10,10]})
 
-(defn paint[{:keys [board snake food], {:keys [position direction]} :snake}]
-  (print (str (char 27) "[2J")) ; clear screen
-  (print (str (char 27) "[;H")) ; move cursor to top left
-  (let [tiles (for [row (range board-height)]
-                (for [cell (range board-width)]
-                  (cond
-                    (= [row cell] position) head
-                    (= [row cell] food) apple
-                    :else ((board row) cell))))
-        picture (clojure.string/join "\n"
-                             (map #(apply str %1) tiles))]
-    (println picture)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Control Strats - replace with A.I.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn random-direction[{:keys [direction]}]
-  (first
-   (shuffle
-    (remove (partial = direction) [:north :south, :west, :east]))))
-
-(defn human-player[{:keys [direction]}]
-  (let [ui (read-line)]
-    (println direction)
-    (condp = ui
-      "j" :south
-      "k" :north
-      "h" :west
-      "l" :east)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defn snake-turn[snake]
   (Thread/sleep 100)
   (update snake :direction
-          human-player
-          ;; random-direction
-          ))
+          direct-snake))
 
 (defn board-move
   "Snakes head becomes first part of the tail"
@@ -98,12 +67,12 @@
    (all-positions board)))
 
 (defn empty-position[board]
+  (println board)
   ((comp first shuffle) (all-blanks board)))
 
 (defn replace-food[{:keys [position] :as snake} food board]
   (if (= position food)
-    (empty-position board)
-    food))
+    (empty-position (assoc-in board position "CHOMP!"))))
 
 (defn start-game[]
   (loop [turns 99999
@@ -120,8 +89,7 @@
                                   snake-turn
                                   snake-move-position)
                       :food (replace-food snake food board)
-                      :board (board-move board snake)
-                      })))))
+                      :board (board-move board snake)})))))
 
 (defn -main []
   (start-game))

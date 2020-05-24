@@ -44,7 +44,7 @@
 
 (deftest replacing-blanks
   (let [board [[0 0 0]
-               [0 1 \+]]]
+               [0 1 "CHOMP!"]]]
     (testing "finds all blanks"
       (is
        (= 

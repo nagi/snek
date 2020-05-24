@@ -1,7 +1,7 @@
 (ns snek.core)
 
-(def board-height 5)
-(def board-width 5)
+(def board-height 32)
+(def board-width 32)
 
 (def space 0)
 (def wall  \#)
@@ -19,7 +19,7 @@
 (defn snake-new [[y x] direction]
   {:position [y x] :direction direction})
 
-(defn snake-move [{:keys [position direction] :as snake}]
+(defn snake-move-position [{:keys [position direction] :as snake}]
   (let [[y x] position]
     (condp = direction
       :north (snake-new [(dec y) x] direction)
@@ -30,10 +30,10 @@
 
 (def game-new
   {:board (board-new board-height board-width)
-   :snake (snake-new [1 0] :east)
-   :food [2,2]})
+   :snake (snake-new [10 10] :east)
+   :food [20,20]})
 
-(defn paint[{:keys [board snake food], {:keys [position direction]} :snake} ]
+(defn paint[{:keys [board snake food], {:keys [position direction]} :snake}]
   (let [tiles (for [row (range board-height)]
                 (for [cell (range board-width)]
                   (cond
@@ -43,6 +43,14 @@
         picture (clojure.string/join "\n"
                              (map #(apply str %1) tiles))]
     (println picture)))
+
+(defn random-direction[{:keys [direction]}]
+  (first
+   (shuffle
+    (remove (partial = direction) [:north :south, :west, :east]))))
+
+(defn snake-turn[snake]
+  (update snake :direction random-direction))
 
 (defn board-move
   "Snakes head becomes first part of the tail"
@@ -62,17 +70,18 @@
   (crashed? board (snake-new [-1 -1] :stopped)))
 
 (defn start-game[]
-  (loop [turns 3
+  (loop [turns 30
          {:keys [board snake food] :as game} game-new]
     (cond
       (zero? turns) (println "Out of turns")
       (crashed? board snake) (println "Crashed - Game Over")
       :else (do
+              (print (str (char 27) "[2J")) ; clear screen
+              (print (str (char 27) "[;H")) ; move cursor to top left
               (paint game)
-              (println "------------------ next...")
               (recur (dec turns)
                      {
-                      :snake (snake-move snake)
+                      :snake (snake-move-position (snake-turn snake))
                       :food food
                       :board (board-move board (:position snake))
                       })))))

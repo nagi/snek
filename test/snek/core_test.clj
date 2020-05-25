@@ -60,4 +60,4 @@
     (testing "finds the blank"
       (is
        (= [0 2]
-          (replace-food {:position [2 1]} [2 1] board))))))
+          (replace-food {:position [1 2]} [1 2] board))))))

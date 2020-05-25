@@ -6,11 +6,13 @@
 
 (def board-height 16)
 (def board-width 16)
-(def blank-cell 0)
 
+;; Board State
+;; [[0 0 0 0],
+;;  [0 1 2 0],
+;;  [0 0 3 +]] <- head of snake is +, the tail is 3,2,1, and blank cells are 0
 (defn board-new[height width]
-  (->> blank-cell
-       (repeat width)
+  (->> (repeat width 0)
        vec
        (repeat height)
        vec))
@@ -28,7 +30,7 @@
       :east  (move-position [y (inc x)])
       :stopped snake)))
 
-(def game-new
+(defn game-new[board-height board-width]
   {:board (board-new board-height board-width)
    :snake (snake-new [5 5] :east 3)
    :food [10,10]})
@@ -67,24 +69,22 @@
    (all-positions board)))
 
 (defn empty-position[board]
-  (println board)
   ((comp first shuffle) (all-blanks board)))
 
 (defn replace-food[{:keys [position] :as snake} food board]
   (if (= position food)
     (empty-position (assoc-in board position "CHOMP!"))))
 
-(defn start-game[]
+(defn start-game[board-height board-width]
   (loop [turns 99999
-         {:keys [board snake food] :as game} game-new]
+         {:keys [board snake food] :as game} (game-new board-height board-width)]
     (cond
       (zero? turns) (println "Out of turns")
       (crashed? board snake) (println "Crashed - Game Over")
       :else (do
               (paint game)
               (recur (dec turns)
-                     {
-                      :snake (->> snake
+                     {:snake (->> snake
                                   (eat-and-grow food)
                                   snake-turn
                                   snake-move-position)
@@ -92,4 +92,4 @@
                       :board (board-move board snake)})))))
 
 (defn -main []
-  (start-game))
+  (start-game board-height board-width))

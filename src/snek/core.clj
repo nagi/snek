@@ -73,7 +73,8 @@
 
 (defn replace-food[{:keys [position] :as snake} food board]
   (if (= position food)
-    (empty-position (assoc-in board position "CHOMP!"))))
+    (empty-position (assoc-in board position "CHOMP!"))
+    food))
 
 (defn start-game[board-height board-width]
   (loop [turns 99999

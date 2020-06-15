@@ -1,8 +1,7 @@
 (ns snek.core
   (:require
-   [snek.graphics :refer [paint]]
-   [snek.controls :refer [direct-snake]]
-   ))
+   [snek.graphics :refer [init-gfx paint]]
+   [snek.controls :refer [direct-snake]]))
 
 (def board-height 16)
 (def board-width 16)
@@ -56,6 +55,7 @@
     (update snake :length inc)
     snake))
 
+
 (defn all-positions[board]
   (for [y (range (count board))
         x (range (count (first board)))]
@@ -76,9 +76,9 @@
     (empty-position (assoc-in board position "CHOMP!"))
     food))
 
-(defn start-game[board-height board-width]
+(defn start-game[game]
   (loop [turns 99999
-         {:keys [board snake food] :as game} (game-new board-height board-width)]
+         {:keys [board snake food] :as game} game]
     (cond
       (zero? turns) (println "Out of turns")
       (crashed? board snake) (println "Crashed - Game Over")
@@ -93,4 +93,5 @@
                       :board (board-move board snake)})))))
 
 (defn -main []
-  (start-game board-height board-width))
+  (init-gfx board-height board-width)
+  (start-game (game-new board-height board-width)))

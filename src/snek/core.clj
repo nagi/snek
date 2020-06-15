@@ -31,7 +31,7 @@
 
 (defn game-new[board-height board-width]
   {:board (board-new board-height board-width)
-   :snake (snake-new [5 5] :east 3)
+   :snake (snake-new [5 5] :east 5)
    :food [10,10]})
 
 (defn snake-turn[snake]
@@ -77,7 +77,7 @@
     food))
 
 (defn start-game[game]
-  (loop [turns 99999
+  (loop [turns 999
          {:keys [board snake food] :as game} game]
     (cond
       (zero? turns) (println "Out of turns")

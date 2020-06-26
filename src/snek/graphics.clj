@@ -34,7 +34,7 @@
 
 (defn setup []
   (q/smooth)
-  (q/frame-rate 30)
+  (q/frame-rate 10)
   (q/background 200))
 
 (defn draw []

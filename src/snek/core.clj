@@ -98,8 +98,7 @@
      :food-is-east (< head-y (second food))
      :crash-straight (crashed? board (snake-move-position snake))
      :crash-clockwise (crashed? board (snake-move-position (assoc snake :direction clockwise)))
-     :crash-anti-clockwise (crashed? board (snake-move-position (assoc snake :direction anti-clockwise)))
-     )))
+     :crash-anti-clockwise (crashed? board (snake-move-position (assoc snake :direction anti-clockwise))))))
 
 (defn start-game[game]
   (loop [turns 999
